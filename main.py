@@ -1,25 +1,37 @@
 #!/usr/bin/env python3
-"""Entry program for make.fun competition news-image-20261118.
+"""Entry program for news-image-20261118.
 
-The entry image is composed ahead of time (see compose.py) and shipped
-in this repository as entry.png. This program simply copies it to the
-output directory, so both graded runs write identical bytes.
-
-Standard library only; no network access.
+Copies the composed front page, entry.png, sitting beside this file
+into the output directory make.fun provides, so the grader sees the
+same bytes on every run. Standard library only; no network, no
+arguments. The output directory comes from MAKEFUN_OUTPUT_DIR, or
+defaults to /output.
 """
 
 import os
 import shutil
 import sys
 
+ENTRY = "entry.png"
+
 
 def main():
     here = os.path.dirname(os.path.abspath(__file__))
-    source = os.path.join(here, "entry.png")
+    source = os.path.join(here, ENTRY)
+    if not os.path.isfile(source):
+        print(f"error: {ENTRY} is missing next to main.py", file=sys.stderr)
+        return 1
     out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
     os.makedirs(out_dir, exist_ok=True)
-    target = os.path.join(out_dir, "entry.png")
+    target = os.path.join(out_dir, ENTRY)
     shutil.copyfile(source, target)
+    copied = os.path.getsize(target)
+    expected = os.path.getsize(source)
+    if copied != expected:
+        print(f"error: copied {copied} bytes, expected {expected}",
+              file=sys.stderr)
+        return 1
+    print("wrote", target, copied, "bytes")
     return 0
 
 
